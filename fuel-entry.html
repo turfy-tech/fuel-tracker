@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fuel Log</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --fuel: #f97316;
+    --fuel-dark: #c2410c;
+    --fuel-light: #fff7ed;
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #f5f5f5;
+    --muted: #888;
+    --green: #22c55e;
+    --green-bg: #052e16;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+  }
+
+  .header {
+    background: var(--fuel);
+    padding: 1.5rem 1.75rem 1.25rem;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 20px;
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .label-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+  }
+
+  .machine-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.1;
+  }
+
+  .fuel-icon {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    font-size: 32px;
+    opacity: 0.6;
+  }
+
+  .body {
+    padding: 1.75rem;
+  }
+
+  .date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .date-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--fuel);
+    flex-shrink: 0;
+  }
+
+  .date-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .input-wrapper {
+    position: relative;
+    margin-bottom: 1.25rem;
+  }
+
+  input[type="number"], input[type="text"], textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0.875rem 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input:focus {
+    border-color: var(--fuel);
+  }
+
+  .unit-badge {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .notes-input {
+    font-size: 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    resize: none;
+    height: 80px;
+    padding: 0.75rem 1rem;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--fuel);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 0.5rem;
+  }
+
+  .submit-btn:hover { background: var(--fuel-dark); }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { background: #444; cursor: not-allowed; transform: none; }
+
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1.75rem;
+    text-align: center;
+  }
+
+  .success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--green-bg);
+    border: 1.5px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    font-size: 28px;
+  }
+
+  .success-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+
+  .success-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 1.75rem;
+    line-height: 1.5;
+  }
+
+  .summary-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    width: 100%;
+    text-align: left;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+  }
+
+  .summary-row span:first-child { color: var(--muted); }
+  .summary-row span:last-child {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .another-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 1.25rem;
+    transition: border-color 0.15s, color 0.15s;
+    width: 100%;
+  }
+  .another-btn:hover { border-color: var(--fuel); color: var(--fuel); }
+
+  .error-msg {
+    font-size: 12px;
+    color: #f87171;
+    margin-top: 6px;
+    display: none;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .powered {
+    margin-top: 1.5rem;
+    font-size: 11px;
+    color: #444;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="card" id="mainCard">
+  <div class="header">
+    <div class="fuel-icon">⛽</div>
+    <div class="label-tag">Fuel Entry</div>
+    <div class="machine-name" id="machineDisplay">Machine —</div>
+  </div>
+
+  <div class="body" id="formBody">
+    <div class="date-row">
+      <div class="date-dot"></div>
+      <div class="date-text" id="dateDisplay">—</div>
+    </div>
+
+    <div class="field-label">Fuel Amount</div>
+    <div class="input-wrapper">
+      <input type="number" id="fuelAmount" placeholder="0.00" min="0" step="0.1" inputmode="decimal" autofocus />
+      <span class="unit-badge">L</span>
+    </div>
+    <div class="error-msg" id="amountError">Please enter a valid fuel amount.</div>
+
+    <div class="field-label">Notes (optional)</div>
+    <textarea class="notes-input" id="notes" placeholder="e.g. topped up after job, low indicator on..."></textarea>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitEntry()">Log Fuel</button>
+  </div>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Logged!</div>
+    <div class="success-sub" id="successSub">Fuel entry recorded successfully.</div>
+    <div class="summary-box" id="summaryBox"></div>
+    <button class="another-btn" onclick="resetForm()">Log Another Entry</button>
+  </div>
+</div>
+
+<div class="powered">Fuel Tracker v1.0</div>
+
+<script>
+  // ============================================================
+  // CONFIGURATION — Edit this URL after setting up Google Apps Script
+  // ============================================================
+  const SHEET_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+  // ============================================================
+
+  // Read machine ID from URL parameter: ?machine=3
+  function getMachineId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('machine') || '1';
+  }
+
+  function getMachineName(id) {
+    return `Machine ${id}`;
+  }
+
+  function formatDate(d) {
+    return d.toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  const machineId = getMachineId();
+  const machineName = getMachineName(machineId);
+  const now = new Date();
+
+  document.getElementById('machineDisplay').textContent = machineName;
+  document.getElementById('dateDisplay').textContent = formatDate(now);
+
+  function validate() {
+    const val = parseFloat(document.getElementById('fuelAmount').value);
+    const err = document.getElementById('amountError');
+    if (!val || val <= 0 || isNaN(val)) {
+      err.style.display = 'block';
+      return false;
+    }
+    err.style.display = 'none';
+    return true;
+  }
+
+  async function submitEntry() {
+    if (!validate()) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Saving...';
+
+    const amount = parseFloat(document.getElementById('fuelAmount').value);
+    const notes = document.getElementById('notes').value.trim();
+    const dateStr = now.toLocaleDateString('en-CA');
+    const timeStr = now.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
+
+    const payload = {
+      machine: machineName,
+      machineId: machineId,
+      date: dateStr,
+      time: timeStr,
+      amount: amount,
+      notes: notes
+    };
+
+    try {
+      // Send to Google Apps Script
+      if (SHEET_URL !== "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE") {
+        await fetch(SHEET_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        // Demo mode — simulate a delay
+        await new Promise(r => setTimeout(r, 900));
+        console.log("Demo mode — would send:", payload);
+      }
+
+      showSuccess(amount, dateStr, timeStr, notes);
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Log Fuel';
+      alert('Connection error. Please try again.');
+    }
+  }
+
+  function showSuccess(amount, date, time, notes) {
+    document.getElementById('formBody').style.display = 'none';
+    const ss = document.getElementById('successScreen');
+    ss.style.display = 'flex';
+
+    document.getElementById('successSub').textContent =
+      `${machineName} · ${date} at ${time}`;
+
+    let rows = `
+      <div class="summary-row"><span>Machine</span><span>${machineName}</span></div>
+      <div class="summary-row"><span>Date</span><span>${date}</span></div>
+      <div class="summary-row"><span>Time</span><span>${time}</span></div>
+      <div class="summary-row"><span>Fuel</span><span>${amount.toFixed(1)} L</span></div>
+    `;
+    if (notes) rows += `<div class="summary-row"><span>Notes</span><span>${notes}</span></div>`;
+    document.getElementById('summaryBox').innerHTML = rows;
+  }
+
+  function resetForm() {
+    document.getElementById('fuelAmount').value = '';
+    document.getElementById('notes').value = '';
+    document.getElementById('amountError').style.display = 'none';
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = false;
+    btn.textContent = 'Log Fuel';
+    document.getElementById('formBody').style.display = 'block';
+    document.getElementById('successScreen').style.display = 'none';
+  }
+</script>
+</body>
+</html>
