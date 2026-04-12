@@ -180,6 +180,7 @@
   };
 
   const MACHINE_COUNT = 42;
+  const DIESEL_MACHINES = [15, 16, 17]; // Truckster 1, Truckster 2, Coyote — circle check only
   let currentMode = 'hub';
 
   function setMode(mode, btn) {
@@ -211,6 +212,7 @@
 
   function generateHub(output) {
     const base = document.getElementById('hubUrl').value.trim();
+    const checkBase = base.replace('machine-hub.html', 'circle-check.html');
     const title = document.createElement('div');
     title.className = 'section-title';
     title.textContent = `Machine Hub QR Codes — ${MACHINE_COUNT} machines`;
@@ -219,7 +221,11 @@
     grid.className = 'grid';
     output.appendChild(grid);
     for (let i = 1; i <= MACHINE_COUNT; i++) {
-      grid.appendChild(makeCard(i, `${base}?machine=${i}`, 'hub', 'HUB'));
+      if (DIESEL_MACHINES.includes(i)) {
+        grid.appendChild(makeCard(i, `${checkBase}?machine=${i}`, 'check', 'DIESEL'));
+      } else {
+        grid.appendChild(makeCard(i, `${base}?machine=${i}`, 'hub', 'HUB'));
+      }
     }
   }
 
@@ -280,3 +286,4 @@
 </script>
 </body>
 </html>
+
