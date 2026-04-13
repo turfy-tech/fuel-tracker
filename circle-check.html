@@ -313,7 +313,7 @@
   // ============================================================
   // CONFIGURATION
   // ============================================================
-  const SHEET_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbzgP9NINEjj_0kdo6lsWGbntgfGbHLfUmIS75Ba6pSeDuUXnGV-Xx6uP_Yy4HGEdqEA/exec";
 
   const CHECKLIST_ITEMS = [
     { id: "tires",    icon: "🔵", label: "Tire condition" },
@@ -414,7 +414,7 @@
     };
 
     try {
-      if (SHEET_URL !== "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE") {
+      if (SHEET_URL !== "https://script.google.com/macros/s/AKfycbzgP9NINEjj_0kdo6lsWGbntgfGbHLfUmIS75Ba6pSeDuUXnGV-Xx6uP_Yy4HGEdqEA/exec") {
         await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       } else {
         await new Promise(r => setTimeout(r, 800));
