@@ -326,8 +326,32 @@
   ];
   // ============================================================
 
+  const MACHINE_NAMES = {
+    1: "Cart 1", 2: "Cart 2", 3: "Cart 3", 4: "Cart 4", 5: "Cart 5",
+    6: "Cart 6", 7: "Cart 7", 8: "Cart 8", 9: "Cart 9", 10: "Cart 10",
+    11: "Cart 11", 12: "Cart 12", 13: "Cart 13", 14: "Cart 14",
+    15: "Truckster 1", 16: "Truckster 2",
+    17: "Coyote",
+    18: "Roller 1", 19: "Roller 2",
+    20: "Greens Mower 1", 21: "Greens Mower 2", 22: "Greens Mower 3",
+    23: "Greens Mower 4", 24: "Greens Mower 5", 25: "Greens Mower 6",
+    26: "Toro Greens Mower 1", 27: "Toro Greens Mower 2",
+    28: "Toro Greens Mower 3", 29: "Toro Greens Mower 4",
+    30: "Tee Walker 1", 31: "Tee Walker 2", 32: "Tee Walker 3", 33: "Tee Walker 4",
+    34: "Old Tee Walker 1", 35: "Old Tee Walker 2",
+    36: "Aerator 1", 37: "Aerator 2", 38: "Aerator 3",
+    39: "Blower 1", 40: "Blower 2", 41: "Blower 3", 42: "Blower 4",
+    43: "Tractor 1 (Closed Cab)", 44: "Tractor 2 (Closed Cab)", 45: "Tractor 3 (Open Top)",
+    46: "Material Mover",
+    47: "Skid Steer",
+    48: "Mini Ex",
+    49: "4700",
+    50: "4500",
+    51: "Sidewinder",
+    52: "Fairway Mower 1", 53: "Fairway Mower 2", 54: "Fairway Mower 3", 55: "Fairway Mower 4"
+  };
   const machineId = new URLSearchParams(window.location.search).get('machine') || '1';
-  const machineName = `Machine ${machineId}`;
+  const machineName = MACHINE_NAMES[parseInt(machineId)] || `Machine ${machineId}`;
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-CA');
   const timeStr = now.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
@@ -435,3 +459,4 @@
 </script>
 </body>
 </html>
+
