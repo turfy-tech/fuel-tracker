@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Code Generator — Machine Hub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: #f5f4f0; color: #111; padding: 2rem; }
+
+  .top-bar {
+    max-width: 1100px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; }
+  .subtitle { font-size: 13px; color: #666; margin-top: 3px; }
+
+  .config-panel {
+    background: #fff;
+    border: 1.5px solid #ddd;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    flex: 1;
+    min-width: 280px;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .url-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+  .url-row { display: flex; gap: 8px; }
+
+  .url-input {
+    flex: 1;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #111;
+    outline: none;
+  }
+  .url-input:focus { border-color: #f97316; }
+
+  .mode-tabs { display: flex; gap: 6px; background: #f5f4f0; border-radius: 8px; padding: 4px; }
+
+  .mode-tab {
+    flex: 1;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: #888;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .mode-tab.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  .gen-btn { background: #f97316; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .gen-btn:hover { background: #c2410c; }
+
+  .print-btn { background: #111; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; cursor: pointer; align-self: flex-end; white-space: nowrap; }
+  .print-btn:hover { background: #333; }
+
+  .mode-desc { background: #fffbf5; border: 1px solid #fed7aa; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #7c3d0a; line-height: 1.5; }
+  .mode-desc.check { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
+
+  .section-title { max-width: 1100px; margin: 1.5rem auto 0.75rem; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: #444; padding-bottom: 6px; border-bottom: 1.5px solid #ddd; }
+
+  .grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 12px; }
+
+  .qr-card { background: #fff; border: 1.5px solid #e0deda; border-radius: 12px; padding: 1.1rem; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .qr-card.fuel-card { border-top: 3px solid #f97316; }
+  .qr-card.check-card { border-top: 3px solid #22c55e; }
+  .qr-card.hub-card { border-top: 3px solid #6366f1; }
+
+  .card-header { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .machine-num { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #111; }
+
+  .badge { font-size: 9px; font-weight: 600; padding: 3px 8px; border-radius: 20px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; }
+  .badge.fuel { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+  .badge.check { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .badge.hub { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+
+  .qr-box { width: 155px; height: 155px; display: flex; align-items: center; justify-content: center; }
+  .qr-box canvas, .qr-box img { width: 155px !important; height: 155px !important; }
+  .qr-url { font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: #aaa; word-break: break-all; text-align: center; line-height: 1.4; }
+
+  @media print {
+    body { background: #fff; padding: 0.5rem; }
+    .top-bar, .section-title { display: none; }
+    .grid { gap: 6px; }
+    .qr-card { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>⛽ ✅ QR Code Generator</h1>
+    <div class="subtitle">Turfy Tech — Fuel Tracker & Circle Check · 42 machines</div>
+  </div>
+
+  <div class="config-panel">
+    <div>
+      <div class="url-label">Mode</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('hub', this)">Option B — Combined Hub</button>
+        <button class="mode-tab" onclick="setMode('separate', this)">Option A — Separate Codes</button>
+      </div>
+    </div>
+
+    <div id="modeDesc" class="mode-desc">
+      <strong>Option B:</strong> One QR code per machine — staff scan and choose Fuel Log or Circle Check. Fewer codes to print.
+    </div>
+
+    <div id="hubUrlRow">
+      <div class="url-label">Hub page URL</div>
+      <div class="url-row">
+        <input class="url-input" id="hubUrl" type="text"
+          value="https://turfy-tech.github.io/fuel-tracker/machine-hub.html"
+          placeholder="https://turfy-tech.github.io/fuel-tracker/machine-hub.html" />
+      </div>
+    </div>
+
+    <div id="separateUrls" style="display:none; flex-direction:column; gap:8px;">
+      <div>
+        <div class="url-label">Fuel page URL</div>
+        <input class="url-input" id="fuelUrl" type="text"
+          value="https://turfy-tech.github.io/fuel-tracker/fuel-entry.html"
+          placeholder="https://turfy-tech.github.io/fuel-tracker/fuel-entry.html" />
+      </div>
+      <div>
+        <div class="url-label">Circle Check page URL</div>
+        <input class="url-input" id="checkUrl" type="text"
+          value="https://turfy-tech.github.io/fuel-tracker/circle-check.html"
+          placeholder="https://turfy-tech.github.io/fuel-tracker/circle-check.html" />
+      </div>
+    </div>
+
+    <button class="gen-btn" onclick="generateAll()">Generate QR Codes</button>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">🖨 Print All</button>
+</div>
+
+<div id="output"></div>
+
+<script>
+  const MACHINE_NAMES = {
+    1: "Cart 1", 2: "Cart 2", 3: "Cart 3", 4: "Cart 4", 5: "Cart 5",
+    6: "Cart 6", 7: "Cart 7", 8: "Cart 8", 9: "Cart 9", 10: "Cart 10",
+    11: "Cart 11", 12: "Cart 12", 13: "Cart 13", 14: "Cart 14",
+    15: "Truckster 1", 16: "Truckster 2",
+    17: "Coyote",
+    18: "Roller 1", 19: "Roller 2",
+    20: "Greens Mower 1", 21: "Greens Mower 2", 22: "Greens Mower 3",
+    23: "Greens Mower 4", 24: "Greens Mower 5", 25: "Greens Mower 6",
+    26: "Toro Greens Mower 1", 27: "Toro Greens Mower 2",
+    28: "Toro Greens Mower 3", 29: "Toro Greens Mower 4",
+    30: "Tee Walker 1", 31: "Tee Walker 2", 32: "Tee Walker 3", 33: "Tee Walker 4",
+    34: "Old Tee Walker 1", 35: "Old Tee Walker 2",
+    36: "Aerator 1", 37: "Aerator 2", 38: "Aerator 3",
+    39: "Blower 1", 40: "Blower 2", 41: "Blower 3", 42: "Blower 4"
+  };
+
+  const MACHINE_COUNT = 42;
+  const DIESEL_MACHINES = [15, 16, 17]; // Truckster 1, Truckster 2, Coyote — circle check only
+  let currentMode = 'hub';
+
+  function setMode(mode, btn) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const desc = document.getElementById('modeDesc');
+    const hubRow = document.getElementById('hubUrlRow');
+    const sepRows = document.getElementById('separateUrls');
+    if (mode === 'hub') {
+      hubRow.style.display = 'block';
+      sepRows.style.display = 'none';
+      desc.className = 'mode-desc';
+      desc.innerHTML = '<strong>Option B:</strong> One QR code per machine — staff scan and choose Fuel Log or Circle Check. Fewer codes to print.';
+    } else {
+      hubRow.style.display = 'none';
+      sepRows.style.display = 'flex';
+      desc.className = 'mode-desc check';
+      desc.innerHTML = '<strong>Option A:</strong> Two QR codes per machine — one at the fuel pump, one on the machine. No extra tap, no confusion.';
+    }
+  }
+
+  function generateAll() {
+    const output = document.getElementById('output');
+    output.innerHTML = '';
+    if (currentMode === 'hub') generateHub(output);
+    else generateSeparate(output);
+  }
+
+  function generateHub(output) {
+    const base = document.getElementById('hubUrl').value.trim();
+    const checkBase = base.replace('machine-hub.html', 'circle-check.html');
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = `Machine Hub QR Codes — ${MACHINE_COUNT} machines`;
+    output.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    output.appendChild(grid);
+    for (let i = 1; i <= MACHINE_COUNT; i++) {
+      if (DIESEL_MACHINES.includes(i)) {
+        grid.appendChild(makeCard(i, `${checkBase}?machine=${i}`, 'check', 'DIESEL'));
+      } else {
+        grid.appendChild(makeCard(i, `${base}?machine=${i}`, 'hub', 'HUB'));
+      }
+    }
+  }
+
+  function generateSeparate(output) {
+    const fuelBase = document.getElementById('fuelUrl').value.trim();
+    const checkBase = document.getElementById('checkUrl').value.trim();
+
+    const fuelTitle = document.createElement('div');
+    fuelTitle.className = 'section-title';
+    fuelTitle.textContent = `⛽ Fuel Log QR Codes — post at the fuel pump`;
+    output.appendChild(fuelTitle);
+    const fuelGrid = document.createElement('div');
+    fuelGrid.className = 'grid';
+    output.appendChild(fuelGrid);
+    for (let i = 1; i <= MACHINE_COUNT; i++) {
+      fuelGrid.appendChild(makeCard(i, `${fuelBase}?machine=${i}`, 'fuel', 'FUEL'));
+    }
+
+    const checkTitle = document.createElement('div');
+    checkTitle.className = 'section-title';
+    checkTitle.style.marginTop = '2rem';
+    checkTitle.textContent = `✅ Circle Check QR Codes — attach to each machine`;
+    output.appendChild(checkTitle);
+    const checkGrid = document.createElement('div');
+    checkGrid.className = 'grid';
+    output.appendChild(checkGrid);
+    for (let i = 1; i <= MACHINE_COUNT; i++) {
+      checkGrid.appendChild(makeCard(i, `${checkBase}?machine=${i}`, 'check', 'CHECK'));
+    }
+  }
+
+  function makeCard(num, url, type, badgeText) {
+    const name = MACHINE_NAMES[num] || `Machine ${num}`;
+    const card = document.createElement('div');
+    card.className = `qr-card ${type}-card`;
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="machine-num">${name}</div>
+        <div class="badge ${type}">${badgeText}</div>
+      </div>
+      <div class="qr-box" id="qr-${type}-${num}"></div>
+      <div class="qr-url">${url}</div>
+    `;
+    setTimeout(() => {
+      new QRCode(document.getElementById(`qr-${type}-${num}`), {
+        text: url,
+        width: 155,
+        height: 155,
+        colorDark: "#111111",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }, 0);
+    return card;
+  }
+
+  generateAll();
+</script>
+</body>
+</html>
